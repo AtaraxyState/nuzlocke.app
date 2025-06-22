@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuzlocke API Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .demo-section {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .code-block {
+            background: #1a1a1a;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            overflow-x: auto;
+            border-left: 4px solid #00ff88;
+        }
+        .result {
+            background: #0a0a0a;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 10px;
+            border-left: 4px solid #ff6b6b;
+        }
+        .success {
+            border-left-color: #00ff88;
+        }
+        .type-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin: 2px;
+            font-weight: bold;
+        }
+        .type-fire { background-color: #F05030; }
+        .type-fighting { background-color: #A05038; }
+        .type-normal { background-color: #A8A090; }
+        .type-flying { background-color: #A890F0; }
+        .pokemon-card {
+            background: #333;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #00ff88;
+        }
+        .shiny {
+            border-left-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+        .dead {
+            border-left-color: #ff4444;
+            opacity: 0.7;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .stat {
+            background: #1a1a1a;
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .level {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        .nickname {
+            color: #00ff88;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔥 Nuzlocke External API Demo</h1>
+    <p>This demo shows what our API would return with real Nuzlocke data. Since we can't run the dev server due to dependency issues, this demonstrates the expected behavior.</p>
+
+    <div class="demo-section">
+        <h2>📊 API Status Response</h2>
+        <div class="code-block">
+GET /api/external?endpoint=status
+        </div>
+        <div class="result success" id="status-result">
+            <h3>Response:</h3>
+            <div id="status-data"></div>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>👥 Current Team</h2>
+        <div class="code-block">
+GET /api/external?endpoint=team
+        </div>
+        <div class="result success" id="team-result">
+            <h3>Team Members:</h3>
+            <div id="team-data"></div>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>📦 Available Pokemon (Box)</h2>
+        <div class="code-block">
+GET /api/external?endpoint=box
+        </div>
+        <div class="result success">
+            <h3>Available Pokemon:</h3>
+            <div id="box-data"></div>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>💀 Deceased Pokemon</h2>
+        <div class="code-block">
+GET /api/external?endpoint=dead
+        </div>
+        <div class="result success">
+            <h3>Memorial Wall:</h3>
+            <div id="dead-data"></div>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>🎮 Browser Console API</h2>
+        <div class="code-block">
+// Available when app is loaded:
+await NuzlockeAPI.getTeam()
+await NuzlockeAPI.getFull()
+await NuzlockeAPI.getStatus()
+
+// Real-time updates:
+NuzlockeEmitter.startPolling(1000)
+NuzlockeEmitter.addEventListener('teamUpdate', (e) => {
+    console.log('Team changed:', e.detail)
+})
+        </div>
+    </div>
+
+    <script>
+        // Simulate API responses using our test data
+        const mockData = {
+            status: {
+                gameId: "abc123",
+                gameName: "My Emerald Nuzlocke",
+                gameVersion: "emerald",
+                created: "1640995200000",
+                updated: "1640999999000",
+                attempts: 1,
+                teamCount: 2,
+                boxCount: 3,
+                deadCount: 1,
+                starter: "fire"
+            },
+            team: [
+                {
+                    locationId: "route_103",
+                    pokemon: "blaziken",
+                    name: "Blaziken",
+                    level: 45,
+                    status: 1,
+                    nature: "adamant",
+                    ability: "blaze",
+                    moves: ["flamethrower", "sky_uppercut", "slash", "focus_energy"],
+                    types: ["fire", "fighting"],
+                    stats: { hp: 156, atk: 142, def: 89, spa: 120, spd: 89, spe: 100 },
+                    nickname: "Flamebird"
+                },
+                {
+                    locationId: "route_102",
+                    pokemon: "swellow",
+                    name: "Swellow",
+                    level: 42,
+                    status: 1,
+                    types: ["normal", "flying"]
+                }
+            ],
+            box: [
+                {
+                    locationId: "route_103",
+                    pokemon: "blaziken",
+                    name: "Blaziken",
+                    level: 45,
+                    status: 1,
+                    nickname: "Flamebird",
+                    types: ["fire", "fighting"]
+                },
+                {
+                    locationId: "route_102",
+                    pokemon: "swellow",
+                    name: "Swellow",
+                    level: 42,
+                    status: 1,
+                    types: ["normal", "flying"]
+                },
+                {
+                    locationId: "route_105",
+                    pokemon: "pikachu",
+                    name: "Pikachu",
+                    level: 25,
+                    status: 6, // Shiny
+                    types: ["electric"]
+                }
+            ],
+            dead: [
+                {
+                    locationId: "route_104",
+                    pokemon: "gardevoir",
+                    name: "Gardevoir",
+                    level: 44,
+                    status: 5,
+                    types: ["psychic", "fairy"]
+                }
+            ]
+        }
+
+        function renderStatus() {
+            const container = document.getElementById('status-data')
+            const data = mockData.status
+            container.innerHTML = `
+                <div class="stats">
+                    <div class="stat">
+                        <strong>Game:</strong><br>
+                        ${data.gameName}
+                    </div>
+                    <div class="stat">
+                        <strong>Version:</strong><br>
+                        ${data.gameVersion}
+                    </div>
+                    <div class="stat">
+                        <strong>Team:</strong><br>
+                        ${data.teamCount}/6
+                    </div>
+                    <div class="stat">
+                        <strong>Box:</strong><br>
+                        ${data.boxCount}
+                    </div>
+                    <div class="stat">
+                        <strong>Dead:</strong><br>
+                        ${data.deadCount}
+                    </div>
+                    <div class="stat">
+                        <strong>Starter:</strong><br>
+                        ${data.starter}
+                    </div>
+                </div>
+            `
+        }
+
+        function renderPokemon(pokemon, container) {
+            const types = pokemon.types.map(type => 
+                `<span class="type-badge type-${type}">${type}</span>`
+            ).join('')
+            
+            const nickname = pokemon.nickname ? 
+                `<span class="nickname">"${pokemon.nickname}"</span>` : ''
+            
+            const classes = ['pokemon-card']
+            if (pokemon.status === 6) classes.push('shiny')
+            if (pokemon.status === 5) classes.push('dead')
+            
+            const card = document.createElement('div')
+            card.className = classes.join(' ')
+            card.innerHTML = `
+                <strong>${pokemon.name}</strong> ${nickname}
+                <span class="level">Lv. ${pokemon.level}</span>
+                <br>
+                <small>Location: ${pokemon.locationId}</small>
+                <br>
+                ${types}
+                ${pokemon.status === 6 ? '<br><small>✨ Shiny!</small>' : ''}
+                ${pokemon.status === 5 ? '<br><small>💀 Deceased</small>' : ''}
+            `
+            container.appendChild(card)
+        }
+
+        function renderTeam() {
+            const container = document.getElementById('team-data')
+            container.innerHTML = ''
+            mockData.team.forEach(pokemon => renderPokemon(pokemon, container))
+        }
+
+        function renderBox() {
+            const container = document.getElementById('box-data')
+            container.innerHTML = ''
+            mockData.box.forEach(pokemon => renderPokemon(pokemon, container))
+        }
+
+        function renderDead() {
+            const container = document.getElementById('dead-data')
+            container.innerHTML = ''
+            mockData.dead.forEach(pokemon => renderPokemon(pokemon, container))
+        }
+
+        // Render all sections
+        renderStatus()
+        renderTeam()
+        renderBox()
+        renderDead()
+
+        // Add some interactivity
+        console.log('🔥 Nuzlocke API Demo loaded!')
+        console.log('Mock data available in window.mockData')
+        window.mockData = mockData
+    </script>
+</body>
+</html> 

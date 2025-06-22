@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 Nuzlocke Real-Time Data Connection</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .status-panel {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .connected {
+            background: rgba(34, 197, 94, 0.2);
+            border: 2px solid #22c55e;
+        }
+        .disconnected {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid #ef4444;
+        }
+        .button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.2s;
+        }
+        .button:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+        .button:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .instructions {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .code-block {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: "SF Mono", Monaco, monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .data-preview {
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .log {
+            background: rgba(0,0,0,0.5);
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            color: #e5e7eb;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+        .log-success {
+            color: #22c55e;
+        }
+        .log-error {
+            color: #ef4444;
+        }
+        .log-info {
+            color: #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Nuzlocke Real-Time Data Connection</h1>
+        
+        <div class="status-panel" id="connection-status">
+            <h2>📡 Connection Status</h2>
+            <div id="status-content">
+                <p>🔍 Checking for Nuzlocke data...</p>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h2>🚀 Quick Setup</h2>
+            <p><strong>Method 1: Automatic Detection</strong></p>
+            <ol>
+                <li>Open your Nuzlocke tracker in another browser tab</li>
+                <li>Click the "Connect to Nuzlocke Tracker" button below</li>
+                <li>Data will automatically sync to this server</li>
+            </ol>
+            
+            <p><strong>Method 2: Manual Console Command</strong></p>
+            <ol>
+                <li>Open your Nuzlocke tracker in another tab</li>
+                <li>Open browser console (F12)</li>
+                <li>Run this command:</li>
+            </ol>
+                            <div class="code-block">NuzlockeAPI.sendToStandaloneServer('http://localhost:5174')</div>
+        </div>
+
+        <div class="grid">
+            <div>
+                <h3>🎮 Controls</h3>
+                <button class="button" onclick="connectToTracker()">Connect to Nuzlocke Tracker</button>
+                <button class="button" onclick="refreshData()">Refresh Data</button>
+                <button class="button" onclick="testAPI()">Test API</button>
+                <button class="button" onclick="clearLogs()">Clear Logs</button>
+                
+                <h3>📊 Quick API Tests</h3>
+                <button class="button" onclick="testEndpoint('status')">Get Status</button>
+                <button class="button" onclick="testEndpoint('team')">Get Team</button>
+                <button class="button" onclick="testEndpoint('full')">Get Full Data</button>
+            </div>
+            
+            <div>
+                <h3>📈 Activity Log</h3>
+                <div class="log" id="activity-log">
+                    <div class="log-entry log-info">🔄 Server ready for connections...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div>
+                <h3>🎯 Current Team Preview</h3>
+                <div class="data-preview" id="team-preview">
+                    <p>No team data available yet</p>
+                </div>
+            </div>
+            
+            <div>
+                <h3>📋 Game Status</h3>
+                <div class="data-preview" id="status-preview">
+                    <p>No status data available yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isConnected = false
+        let updateInterval = null
+
+        // Logging function
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('activity-log')
+            const timestamp = new Date().toLocaleTimeString()
+            const entry = document.createElement('div')
+            entry.className = `log-entry log-${type}`
+            entry.innerHTML = `[${timestamp}] ${message}`
+            logDiv.appendChild(entry)
+            logDiv.scrollTop = logDiv.scrollHeight
+        }
+
+        // Update connection status
+        function updateConnectionStatus(connected, data = null) {
+            const statusDiv = document.getElementById('connection-status')
+            const contentDiv = document.getElementById('status-content')
+            
+            isConnected = connected
+            
+            if (connected) {
+                statusDiv.className = 'status-panel connected'
+                contentDiv.innerHTML = `
+                    <h3>✅ Connected to Real Data</h3>
+                    <p><strong>Game:</strong> ${data?.gameName || 'Unknown'}</p>
+                    <p><strong>Version:</strong> ${data?.gameVersion || 'Unknown'}</p>
+                    <p><strong>Last Update:</strong> ${data?._meta?.lastUpdate || 'Unknown'}</p>
+                    <p><strong>Team Size:</strong> ${data?.teamCount || 0}</p>
+                `
+            } else {
+                statusDiv.className = 'status-panel disconnected'
+                contentDiv.innerHTML = `
+                    <h3>⚠️ Using Mock Data</h3>
+                    <p>Connect to your Nuzlocke tracker to see real-time data</p>
+                    <p>Server is running but no real data has been received yet.</p>
+                `
+            }
+        }
+
+        // Try to connect to Nuzlocke tracker data
+        async function connectToTracker() {
+            log('🔍 Attempting to connect to Nuzlocke tracker...', 'info')
+            
+            try {
+                // Method 1: Try to access localStorage data directly (if in same origin)
+                try {
+                    const activeGameId = localStorage.getItem('nuzlocke')
+                    const savesData = localStorage.getItem('nuzlocke.saves')
+                    
+                    if (activeGameId && savesData) {
+                        const gameData = localStorage.getItem(`nuzlocke.${activeGameId}`)
+                        
+                        if (gameData) {
+                            await sendDataToServer(gameData, savesData)
+                            log('✅ Successfully connected using localStorage access', 'success')
+                            log('🔄 Auto-sync enabled - data will update automatically', 'info')
+                            return true
+                        }
+                    }
+                } catch (e) {
+                    log('⚠️ Direct localStorage access failed (cross-origin)', 'info')
+                }
+                
+                // Method 2: Instruct user to run command in tracker tab
+                log('📋 Please run this command in your Nuzlocke tracker tab console:', 'info')
+                log('NuzlockeAPI.sendToStandaloneServer("http://localhost:5174")', 'info')
+                log('Or use the manual method below:', 'info')
+                
+                return false
+                
+            } catch (error) {
+                log(`❌ Connection failed: ${error.message}`, 'error')
+                return false
+            }
+        }
+
+        // Send data to server
+        async function sendDataToServer(gameData, savesData) {
+            try {
+                const response = await fetch('/api/update-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ gameData, savesData })
+                })
+                
+                if (response.ok) {
+                    const result = await response.json()
+                    log(`📡 Data sent to server successfully at ${result.timestamp}`, 'success')
+                    autoSyncEnabled = true // Enable auto-sync after first successful connection
+                    await refreshData()
+                    return true
+                }
+                
+                throw new Error(`Server responded with ${response.status}`)
+                
+            } catch (error) {
+                log(`❌ Failed to send data to server: ${error.message}`, 'error')
+                return false
+            }
+        }
+
+        // Refresh data from API
+        async function refreshData() {
+            try {
+                const response = await fetch('/api/external?endpoint=status')
+                const data = await response.json()
+                
+                if (data.error) {
+                    throw new Error(data.error)
+                }
+                
+                updateConnectionStatus(data._meta?.dataSource === 'real', data)
+                updatePreviews(data)
+                log('🔄 Data refreshed successfully', 'success')
+                
+            } catch (error) {
+                log(`❌ Failed to refresh data: ${error.message}`, 'error')
+                updateConnectionStatus(false)
+            }
+        }
+
+        // Update preview sections
+        function updatePreviews(statusData) {
+            // Update team preview
+            const teamPreview = document.getElementById('team-preview')
+            if (statusData.team && statusData.team.length > 0) {
+                teamPreview.innerHTML = statusData.team.map(pokemon => 
+                    `<div style="margin-bottom: 10px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 4px;">
+                        <strong>${pokemon.nickname || pokemon.name}</strong> (${pokemon.pokemon})<br>
+                        Level ${pokemon.level} | ${pokemon.types.join('/')} | ${pokemon.ability || 'Unknown ability'}
+                    </div>`
+                ).join('')
+            } else {
+                teamPreview.innerHTML = '<p>No team members found</p>'
+            }
+            
+            // Update status preview
+            const statusPreview = document.getElementById('status-preview')
+            statusPreview.innerHTML = `
+                <div><strong>Game:</strong> ${statusData.gameName}</div>
+                <div><strong>Version:</strong> ${statusData.gameVersion}</div>
+                <div><strong>Team:</strong> ${statusData.teamCount} Pokemon</div>
+                <div><strong>Box:</strong> ${statusData.boxCount} Pokemon</div>
+                <div><strong>Dead:</strong> ${statusData.deadCount} Pokemon</div>
+                <div><strong>Starter:</strong> ${statusData.starter}</div>
+                <div><strong>Data Source:</strong> ${statusData._meta?.dataSource || 'unknown'}</div>
+                <div><strong>Last Update:</strong> ${statusData._meta?.lastUpdate || 'never'}</div>
+            `
+        }
+
+        // Test API endpoints
+        async function testEndpoint(endpoint) {
+            log(`🧪 Testing ${endpoint} endpoint...`, 'info')
+            
+            try {
+                const response = await fetch(`/api/external?endpoint=${endpoint}`)
+                const data = await response.json()
+                
+                if (data.error) {
+                    throw new Error(data.error)
+                }
+                
+                log(`✅ ${endpoint} endpoint working: ${JSON.stringify(data).substring(0, 100)}...`, 'success')
+                
+                // Update previews if this is status data
+                if (endpoint === 'status') {
+                    updatePreviews(data)
+                }
+                
+            } catch (error) {
+                log(`❌ ${endpoint} endpoint failed: ${error.message}`, 'error')
+            }
+        }
+
+        // General API test
+        async function testAPI() {
+            log('🧪 Running API tests...', 'info')
+            
+            const endpoints = ['status', 'team', 'box', 'dead', 'bosses']
+            let passed = 0
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(`/api/external?endpoint=${endpoint}`)
+                    const data = await response.json()
+                    
+                    if (!data.error) {
+                        passed++
+                        log(`✅ ${endpoint}: OK`, 'success')
+                    } else {
+                        log(`❌ ${endpoint}: ${data.error}`, 'error')
+                    }
+                } catch (error) {
+                    log(`❌ ${endpoint}: ${error.message}`, 'error')
+                }
+            }
+            
+            log(`🎯 API Test Results: ${passed}/${endpoints.length} endpoints working`, passed === endpoints.length ? 'success' : 'error')
+        }
+
+        // Clear logs
+        function clearLogs() {
+            const logDiv = document.getElementById('activity-log')
+            logDiv.innerHTML = '<div class="log-entry log-info">🔄 Logs cleared</div>'
+        }
+
+        // Auto-refresh data every 5 seconds if connected
+        function startAutoRefresh() {
+            if (updateInterval) {
+                clearInterval(updateInterval)
+            }
+            
+            updateInterval = setInterval(() => {
+                if (isConnected) {
+                    refreshData()
+                }
+                // Also check for localStorage changes and auto-sync
+                checkAndSyncLocalStorage()
+            }, 5000)
+        }
+
+        // Check for localStorage changes and auto-sync
+        let lastDataHash = null
+        let autoSyncEnabled = false
+        
+        async function checkAndSyncLocalStorage() {
+            // Only try auto-sync if we've successfully connected before
+            if (!autoSyncEnabled) return
+            
+            try {
+                const activeGameId = localStorage.getItem('nuzlocke')
+                const savesData = localStorage.getItem('nuzlocke.saves')
+                
+                if (activeGameId && savesData) {
+                    const gameData = localStorage.getItem(`nuzlocke.${activeGameId}`)
+                    
+                    if (gameData) {
+                        // Create a hash of the current data to detect changes
+                        const currentDataHash = JSON.stringify({ gameData, savesData })
+                        
+                        // If data has changed, send it to the server
+                        if (currentDataHash !== lastDataHash) {
+                            lastDataHash = currentDataHash
+                            log('🔄 Detected localStorage changes, syncing...', 'info')
+                            await sendDataToServer(gameData, savesData)
+                        }
+                    }
+                }
+            } catch (error) {
+                // Silently fail - localStorage might not be accessible
+                console.log('Auto-sync check failed:', error)
+            }
+        }
+
+        // Initialize page
+        async function initialize() {
+            log('🚀 Initializing real-data demo...', 'info')
+            
+            // Initial data refresh
+            await refreshData()
+            
+            // Try to auto-connect
+            await connectToTracker()
+            
+            // Start auto-refresh
+            startAutoRefresh()
+            
+            log('✅ Demo initialized successfully', 'success')
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initialize)
+    </script>
+</body>
+</html> 
