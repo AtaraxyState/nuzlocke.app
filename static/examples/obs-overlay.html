@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuzlocke OBS Overlay</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: transparent;
+            color: white;
+            overflow: hidden;
+        }
+
+        .overlay-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .team-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 300px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .team-display.vertical-layout {
+            min-width: 160px;
+            max-width: 180px;
+            padding: 15px 10px;
+        }
+
+        .team-header {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border-bottom: 2px solid #fff;
+            padding-bottom: 5px;
+        }
+
+        .pokemon-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .pokemon-grid.horizontal {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .pokemon-grid.vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .pokemon-grid.horizontal .pokemon-card {
+            min-width: 80px;
+            max-width: 100px;
+            min-height: 100px;
+            padding: 8px;
+        }
+
+        .pokemon-grid.vertical .pokemon-card {
+            min-width: 120px;
+            max-width: 140px;
+            min-height: 110px;
+            padding: 10px;
+            width: 100%;
+        }
+
+        .pokemon-grid.horizontal .pokemon-sprite {
+            width: 48px;
+            height: 48px;
+        }
+
+        .pokemon-grid.vertical .pokemon-sprite {
+            width: 56px;
+            height: 56px;
+        }
+
+        .pokemon-grid.horizontal .pokemon-name {
+            font-size: 12px;
+        }
+
+        .pokemon-grid.vertical .pokemon-name {
+            font-size: 13px;
+            line-height: 1.2;
+            font-weight: bold;
+        }
+
+        .pokemon-grid.horizontal .pokemon-nature,
+        .pokemon-grid.horizontal .pokemon-ability,
+        .pokemon-grid.horizontal .pokemon-location {
+            font-size: 10px;
+        }
+
+        .pokemon-grid.vertical .pokemon-nature,
+        .pokemon-grid.vertical .pokemon-ability,
+        .pokemon-grid.vertical .pokemon-location {
+            font-size: 11px;
+            line-height: 1.2;
+        }
+
+        .pokemon-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .pokemon-card.shiny {
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            animation: shiny-glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes shiny-glow {
+            0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+            100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+        }
+
+        .pokemon-sprite {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 5px auto;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .pokemon-sprite.shiny {
+            filter: drop-shadow(2px 2px 4px rgba(255, 215, 0, 0.5));
+        }
+
+        .pokemon-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .pokemon-name {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 3px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .pokemon-nature {
+            font-size: 12px;
+            color: #a78bfa;
+            margin-bottom: 2px;
+            text-transform: capitalize;
+        }
+
+        .pokemon-ability {
+            font-size: 12px;
+            color: #34d399;
+            margin-bottom: 2px;
+            text-transform: capitalize;
+        }
+
+                    .pokemon-location {
+                font-size: 11px;
+                color: #94a3b8;
+                margin-bottom: 4px;
+                text-transform: capitalize;
+                font-style: italic;
+            }
+
+        .pokemon-types {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .type-badge {
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .stats-display {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 200px;
+            z-index: 100;
+        }
+
+        .stats-display.compact {
+            padding: 8px 12px;
+            min-width: 150px;
+            border-radius: 6px;
+        }
+
+        .stats-display.compact .stat-row {
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        .graveyard-display {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            padding: 10px;
+            height: 100px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .graveyard-header {
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #ccc;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+
+        .graveyard-scroll {
+            display: flex;
+            align-items: center;
+            height: 60px;
+            gap: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .graveyard-scroll.scrolling {
+            animation: scrollGraveyard 30s linear infinite;
+        }
+
+        @keyframes scrollGraveyard {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .grave-item {
+            display: flex;
+            align-items: center;
+            background: rgba(100, 0, 0, 0.3);
+            border: 1px solid #666;
+            border-radius: 8px;
+            padding: 8px 12px;
+            min-width: 150px;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .grave-item::before {
+            content: "💀";
+            margin-right: 8px;
+            font-size: 16px;
+        }
+
+        .grave-sprite {
+            width: 32px;
+            height: 32px;
+            margin-right: 8px;
+            filter: grayscale(100%) brightness(0.7);
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+
+        .grave-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .grave-name {
+            font-size: 12px;
+            font-weight: bold;
+            color: #ff6b6b;
+            margin-bottom: 2px;
+        }
+
+        .grave-location {
+            font-size: 10px;
+            color: #aaa;
+            font-style: italic;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .stat-label {
+            color: #ccc;
+        }
+
+        .stat-value {
+            font-weight: bold;
+        }
+
+        .game-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            padding: 10px 15px;
+        }
+
+        .game-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .game-version {
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-size: 18px;
+        }
+
+        .error {
+            color: #ff6b6b;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Configuration Panel Styles */
+        .config-panel {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #444;
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+            font-family: Arial, sans-serif;
+            z-index: 1000;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .config-panel h3 {
+            margin-bottom: 15px;
+            text-align: center;
+            color: #ffd700;
+        }
+
+        .config-panel h4 {
+            margin-bottom: 10px;
+            margin-top: 15px;
+            color: #ccc;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+
+        .config-section {
+            margin-bottom: 15px;
+        }
+
+        .config-panel label {
+            display: block;
+            margin-bottom: 8px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 3px;
+            transition: background 0.2s;
+        }
+
+        .config-panel label:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .config-panel input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .config-panel button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background 0.2s;
+        }
+
+        .config-panel button:hover {
+            background: #005a99;
+        }
+
+        .config-panel button#reset-config {
+            background: #dc3545;
+        }
+
+        .config-panel button#reset-config:hover {
+            background: #c82333;
+        }
+
+        /* Type colors */
+        .type-normal { background-color: #A8A090; }
+        .type-fire { background-color: #F05030; }
+        .type-water { background-color: #3890F0; }
+        .type-electric { background-color: #F0C040; }
+        .type-grass { background-color: #78C850; }
+        .type-ice { background-color: #58C8E0; }
+        .type-fighting { background-color: #A05038; }
+        .type-poison { background-color: #A040A0; }
+        .type-ground { background-color: #E0C068; }
+        .type-flying { background-color: #A890F0; }
+        .type-psychic { background-color: #F05898; }
+        .type-bug { background-color: #A8B820; }
+        .type-rock { background-color: #B8A038; }
+        .type-ghost { background-color: #705898; }
+        .type-dragon { background-color: #7038F8; }
+        .type-dark { background-color: #705848; }
+        .type-steel { background-color: #B8B8D0; }
+        .type-fairy { background-color: #F0B6BC; }
+    </style>
+</head>
+<body>
+    <div class="overlay-container">
+        <div id="loading" class="loading">
+            <div>Loading Nuzlocke data...</div>
+        </div>
+
+        <div id="content" style="display: none;">
+            <div id="game-info" class="game-info" style="display: none;">
+                <div class="game-title" id="game-name">Game Name</div>
+                <div class="game-version" id="game-version">Version</div>
+            </div>
+
+            <div id="team-display" class="team-display">
+                <div class="team-header">Current Team</div>
+                <div class="pokemon-grid" id="team-grid"></div>
+            </div>
+
+            <div id="stats-display" class="stats-display">
+                <div class="stat-row">
+                    <span class="stat-label">Team:</span>
+                    <span class="stat-value" id="team-count">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Box:</span>
+                    <span class="stat-value" id="box-count">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Dead:</span>
+                    <span class="stat-value" id="dead-count">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Total:</span>
+                    <span class="stat-value" id="total-count">0</span>
+                </div>
+            </div>
+
+            <div id="graveyard-display" class="graveyard-display">
+                <div class="graveyard-header">In Memory</div>
+                <div class="graveyard-scroll" id="graveyard-scroll"></div>
+            </div>
+        </div>
+
+        <!-- Configuration Panel (only visible when ?config=true) -->
+        <div id="config-panel" class="config-panel" style="display: none;">
+            <h3>OBS Overlay Configuration</h3>
+            <div class="config-section">
+                <h4>Visible Elements:</h4>
+                <label><input type="checkbox" id="toggle-game-info"> Game Title & Version</label>
+                <label><input type="checkbox" id="toggle-team-display" checked> Team Display</label>
+                <label><input type="checkbox" id="toggle-stats-display" checked> Statistics</label>
+            </div>
+            <div class="config-section">
+                <h4>Team Display Options:</h4>
+                <label><input type="checkbox" id="toggle-team-header" checked> Show "Current Team" Header</label>
+                <label><input type="checkbox" id="toggle-pokemon-nature" checked> Show Pokemon Nature</label>
+                <label><input type="checkbox" id="toggle-pokemon-ability" checked> Show Pokemon Ability</label>
+                <label><input type="checkbox" id="toggle-pokemon-location" checked> Show Catch Location</label>
+                <label><input type="checkbox" id="toggle-pokemon-types" checked> Show Pokemon Types</label>
+            </div>
+            <div class="config-section">
+                <button id="copy-url">Copy Configured URL</button>
+                <button id="reset-config">Reset to Defaults</button>
+            </div>
+        </div>
+
+        <div id="error" class="error" style="display: none;">
+            <h2>Connection Error</h2>
+            <p>Could not connect to Nuzlocke tracker. Make sure the app is running.</p>
+        </div>
+    </div>
+
+    <script>
+        class NuzlockeOverlay {
+            constructor() {
+                this.isConnected = false;
+                this.updateInterval = null;
+                this.lastDataHash = null;
+                this.config = this.parseUrlConfig();
+                this.setupConfiguration();
+                this.setupMessageListener();
+            }
+
+            parseUrlConfig() {
+                const params = new URLSearchParams(window.location.search);
+                return {
+                    showGameInfo: params.get('gameInfo') === 'true',
+                    showTeamDisplay: params.get('teamDisplay') !== 'false', // Default true
+                    showStatsDisplay: params.get('statsDisplay') !== 'false', // Default true
+                    showGraveyardDisplay: params.get('graveyardDisplay') !== 'false', // Default true
+                    showTeamHeader: params.get('teamHeader') !== 'false', // Default true
+                    teamLayout: params.get('teamLayout') || 'grid', // 'grid', 'horizontal', 'vertical'
+                    compactStats: params.get('compactStats') === 'true', // Default false
+                    showPokemonNature: params.get('nature') !== 'false', // Default true
+                    showPokemonAbility: params.get('ability') !== 'false', // Default true
+                    showPokemonLocation: params.get('location') !== 'false', // Default true
+                    showPokemonTypes: params.get('types') !== 'false', // Default true
+                    showConfig: params.get('config') === 'true'
+                };
+            }
+
+            setupConfiguration() {
+                // Apply configuration
+                this.applyConfig();
+
+                // Show config panel if requested
+                if (this.config.showConfig) {
+                    document.getElementById('config-panel').style.display = 'block';
+                    this.setupConfigPanel();
+                }
+            }
+
+            setupMessageListener() {
+                // Listen for configuration updates from parent window (config page)
+                window.addEventListener('message', (event) => {
+                    if (event.data.type === 'updateConfig') {
+                        // Update configuration from parent
+                        Object.assign(this.config, event.data.config);
+                        this.applyConfig();
+                        this.updateTeamDisplay();
+                    }
+                });
+
+                // Notify parent that overlay is ready
+                if (window.parent !== window) {
+                    window.parent.postMessage({ type: 'overlayReady' }, '*');
+                }
+            }
+
+            applyConfig() {
+                // Toggle UI elements based on config
+                document.getElementById('game-info').style.display = 
+                    this.config.showGameInfo ? 'block' : 'none';
+                
+                document.getElementById('team-display').style.display = 
+                    this.config.showTeamDisplay ? 'block' : 'none';
+                
+                document.getElementById('stats-display').style.display = 
+                    this.config.showStatsDisplay ? 'block' : 'none';
+
+                document.getElementById('graveyard-display').style.display = 
+                    this.config.showGraveyardDisplay ? 'block' : 'none';
+
+                // Team header
+                const teamHeader = document.querySelector('.team-header');
+                if (teamHeader) {
+                    teamHeader.style.display = this.config.showTeamHeader ? 'block' : 'none';
+                }
+
+                // Team layout
+                const teamGrid = document.getElementById('team-grid');
+                const teamDisplay = document.getElementById('team-display');
+                if (teamGrid) {
+                    // Remove all layout classes
+                    teamGrid.classList.remove('horizontal', 'vertical');
+                    
+                    // Add the appropriate layout class
+                    if (this.config.teamLayout === 'horizontal') {
+                        teamGrid.classList.add('horizontal');
+                        if (teamDisplay) teamDisplay.classList.remove('vertical-layout');
+                    } else if (this.config.teamLayout === 'vertical') {
+                        teamGrid.classList.add('vertical');
+                        if (teamDisplay) teamDisplay.classList.add('vertical-layout');
+                    } else {
+                        // Default 'grid' layout
+                        if (teamDisplay) teamDisplay.classList.remove('vertical-layout');
+                    }
+                }
+
+                // Stats display compact mode
+                const statsDisplay = document.getElementById('stats-display');
+                if (statsDisplay) {
+                    if (this.config.compactStats) {
+                        statsDisplay.classList.add('compact');
+                    } else {
+                        statsDisplay.classList.remove('compact');
+                    }
+                }
+            }
+
+            setupConfigPanel() {
+                // Set checkbox states
+                document.getElementById('toggle-game-info').checked = this.config.showGameInfo;
+                document.getElementById('toggle-team-display').checked = this.config.showTeamDisplay;
+                document.getElementById('toggle-stats-display').checked = this.config.showStatsDisplay;
+                document.getElementById('toggle-team-header').checked = this.config.showTeamHeader;
+                document.getElementById('toggle-pokemon-nature').checked = this.config.showPokemonNature;
+                document.getElementById('toggle-pokemon-ability').checked = this.config.showPokemonAbility;
+                document.getElementById('toggle-pokemon-location').checked = this.config.showPokemonLocation;
+                document.getElementById('toggle-pokemon-types').checked = this.config.showPokemonTypes;
+
+                // Add event listeners
+                document.getElementById('toggle-game-info').addEventListener('change', (e) => {
+                    this.config.showGameInfo = e.target.checked;
+                    this.applyConfig();
+                });
+
+                document.getElementById('toggle-team-display').addEventListener('change', (e) => {
+                    this.config.showTeamDisplay = e.target.checked;
+                    this.applyConfig();
+                });
+
+                document.getElementById('toggle-stats-display').addEventListener('change', (e) => {
+                    this.config.showStatsDisplay = e.target.checked;
+                    this.applyConfig();
+                });
+
+                document.getElementById('toggle-team-header').addEventListener('change', (e) => {
+                    this.config.showTeamHeader = e.target.checked;
+                    this.applyConfig();
+                });
+
+                document.getElementById('toggle-pokemon-nature').addEventListener('change', (e) => {
+                    this.config.showPokemonNature = e.target.checked;
+                    this.updateTeamDisplay();
+                });
+
+                document.getElementById('toggle-pokemon-ability').addEventListener('change', (e) => {
+                    this.config.showPokemonAbility = e.target.checked;
+                    this.updateTeamDisplay();
+                });
+
+                document.getElementById('toggle-pokemon-location').addEventListener('change', (e) => {
+                    this.config.showPokemonLocation = e.target.checked;
+                    this.updateTeamDisplay();
+                });
+
+                document.getElementById('toggle-pokemon-types').addEventListener('change', (e) => {
+                    this.config.showPokemonTypes = e.target.checked;
+                    this.updateTeamDisplay();
+                });
+
+                document.getElementById('copy-url').addEventListener('click', () => {
+                    this.copyConfiguredUrl();
+                });
+
+                document.getElementById('reset-config').addEventListener('click', () => {
+                    this.resetConfig();
+                });
+            }
+
+            copyConfiguredUrl() {
+                const baseUrl = window.location.origin + window.location.pathname;
+                const params = new URLSearchParams();
+                
+                if (this.config.showGameInfo) params.set('gameInfo', 'true');
+                if (!this.config.showTeamDisplay) params.set('teamDisplay', 'false');
+                if (!this.config.showStatsDisplay) params.set('statsDisplay', 'false');
+                if (!this.config.showTeamHeader) params.set('teamHeader', 'false');
+                if (this.config.teamLayout !== 'grid') params.set('teamLayout', this.config.teamLayout);
+                if (this.config.compactStats) params.set('compactStats', 'true');
+                if (!this.config.showPokemonNature) params.set('nature', 'false');
+                if (!this.config.showPokemonAbility) params.set('ability', 'false');
+                if (!this.config.showPokemonLocation) params.set('location', 'false');
+                if (!this.config.showPokemonTypes) params.set('types', 'false');
+
+                const configuredUrl = baseUrl + (params.toString() ? '?' + params.toString() : '');
+                
+                navigator.clipboard.writeText(configuredUrl).then(() => {
+                    alert('Configured URL copied to clipboard!\n\n' + configuredUrl);
+                }).catch(() => {
+                    prompt('Copy this URL for your OBS browser source:', configuredUrl);
+                });
+            }
+
+            resetConfig() {
+                // Reset to defaults
+                this.config = {
+                    showGameInfo: false,
+                    showTeamDisplay: true,
+                    showStatsDisplay: true,
+                    showGraveyardDisplay: true,
+                    showTeamHeader: true,
+                    teamLayout: 'grid',
+                    compactStats: false,
+                    showPokemonNature: true,
+                    showPokemonAbility: true,
+                    showPokemonLocation: true,
+                    showPokemonTypes: true,
+                    showConfig: true
+                };
+                this.applyConfig();
+                this.setupConfigPanel();
+                this.updateTeamDisplay();
+                if (this.lastDeadData) {
+                    this.updateGraveyard(this.lastDeadData);
+                }
+            }
+
+            updateTeamDisplay() {
+                // Re-render team with current config
+                const teamGrid = document.getElementById('team-grid');
+                if (teamGrid && this.lastTeamData) {
+                    this.updateTeam(this.lastTeamData);
+                }
+            }
+
+            getDeathCause(pokemon) {
+                // Determine what to show as the cause of death
+                let deathCause = 'Unknown';
+                let hasDeathData = false;
+                
+                if (pokemon.death && pokemon.death.trainer) {
+                    // Show trainer information if available
+                    const trainerType = pokemon.death.trainer.type || '';
+                    const trainerName = pokemon.death.trainer.name || '';
+                    
+                    if (trainerType && trainerName) {
+                        deathCause = `${trainerType} ${trainerName}`;
+                    } else if (trainerName) {
+                        deathCause = trainerName;
+                    } else if (trainerType) {
+                        deathCause = trainerType;
+                    }
+                    
+                    // Add opponent Pokemon if available
+                    if (pokemon.death.opponent && pokemon.death.opponent.name) {
+                        deathCause += `'s ${pokemon.death.opponent.name}`;
+                    }
+                    hasDeathData = true;
+                    
+                } else if (pokemon.death && pokemon.death.opponent && pokemon.death.opponent.name) {
+                    // Wild Pokemon encounter - just show the Pokemon name
+                    deathCause = `wild ${pokemon.death.opponent.name}`;
+                    hasDeathData = true;
+                    
+                } else if (pokemon.death && pokemon.death.location && pokemon.death.location.name) {
+                    // Show death location if available
+                    deathCause = pokemon.death.location.name.replace(/_/g, ' ');
+                    hasDeathData = true;
+                    
+                } else if (pokemon.locationId) {
+                    // Fall back to catch location
+                    deathCause = pokemon.locationId.replace(/_/g, ' ');
+                    hasDeathData = false; // This is catch location, not death data
+                }
+                
+                return { cause: deathCause, hasDeathData };
+            }
+
+            updateGraveyard(deadPokemon) {
+                this.lastDeadData = deadPokemon; // Store for re-rendering
+                const graveyardScroll = document.getElementById('graveyard-scroll');
+                
+                if (!graveyardScroll || !this.config.showGraveyardDisplay) return;
+                
+                graveyardScroll.innerHTML = '';
+                graveyardScroll.classList.remove('scrolling');
+
+                if (deadPokemon.length === 0) {
+                    // Show a message when no Pokemon have died
+                    const noDeaths = document.createElement('div');
+                    noDeaths.className = 'grave-item';
+                    noDeaths.innerHTML = `
+                        <div class="grave-info">
+                            <div class="grave-name">No Casualties Yet</div>
+                            <div class="grave-location">Keep them safe!</div>
+                        </div>
+                    `;
+                    graveyardScroll.appendChild(noDeaths);
+                    return;
+                }
+
+                // Create grave items for each dead Pokemon
+                deadPokemon.forEach(pokemon => {
+                    const graveItem = document.createElement('div');
+                    graveItem.className = 'grave-item';
+
+                    // Get Pokemon sprite URL
+                    const spriteUrl = this.getPokemonSpriteUrl(pokemon.pokemon, false);
+                    const deathInfo = this.getDeathCause(pokemon);
+                    const prefix = deathInfo.hasDeathData ? 'Killed by' : 'Caught at';
+
+                    graveItem.innerHTML = `
+                        <img src="${spriteUrl}" alt="${pokemon.name}" class="grave-sprite" 
+                             onerror="this.style.display='none'" onload="this.style.display='block'">
+                        <div class="grave-info">
+                            <div class="grave-name">${pokemon.nickname || pokemon.name}</div>
+                            <div class="grave-location">${prefix} ${deathInfo.cause}</div>
+                        </div>
+                    `;
+
+                    graveyardScroll.appendChild(graveItem);
+                });
+
+                // Check if content overflows and enable scrolling if needed
+                setTimeout(() => {
+                    const container = graveyardScroll.parentElement;
+                    const containerWidth = container.offsetWidth - 20; // Account for padding
+                    const contentWidth = graveyardScroll.scrollWidth;
+                    
+                    if (contentWidth > containerWidth) {
+                        // Content overflows, enable scrolling and duplicate content for seamless loop
+                        graveyardScroll.classList.add('scrolling');
+                        
+                                                 // Duplicate the content for seamless looping
+                        deadPokemon.forEach(pokemon => {
+                            const graveItem = document.createElement('div');
+                            graveItem.className = 'grave-item';
+
+                            const spriteUrl = this.getPokemonSpriteUrl(pokemon.pokemon, false);
+                            const deathInfo = this.getDeathCause(pokemon);
+                            const prefix = deathInfo.hasDeathData ? 'Killed by' : 'Caught at';
+
+                            graveItem.innerHTML = `
+                                <img src="${spriteUrl}" alt="${pokemon.name}" class="grave-sprite" 
+                                     onerror="this.style.display='none'" onload="this.style.display='block'">
+                                <div class="grave-info">
+                                    <div class="grave-name">${pokemon.nickname || pokemon.name}</div>
+                                    <div class="grave-location">${prefix} ${deathInfo.cause}</div>
+                                </div>
+                            `;
+
+                            graveyardScroll.appendChild(graveItem);
+                        });
+                    }
+                }, 100); // Small delay to ensure DOM is rendered
+            }
+
+            async initialize() {
+                console.log('🔥 Initializing Nuzlocke Overlay');
+                
+                // Try to connect to the API
+                try {
+                    await this.fetchAndUpdate();
+                    this.isConnected = true;
+                    this.showContent();
+                    this.startPolling();
+                } catch (error) {
+                    console.error('Failed to initialize:', error);
+                    this.showError();
+                }
+            }
+
+            async fetchAndUpdate() {
+                try {
+                    // Fetch data from the external API
+                    const response = await fetch('/api/external?endpoint=full');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const apiData = await response.json();
+                    
+                    // Transform API data to display format
+                    const displayData = {
+                        gameName: apiData.gameName || "Nuzlocke Run",
+                        gameVersion: apiData.gameVersion || "unknown",
+                        team: apiData.team || [],
+                        dead: apiData.dead || [],
+                        stats: apiData.stats || {
+                            teamCount: 0,
+                            boxCount: 0,
+                            deadCount: 0,
+                            totalCaught: 0
+                        }
+                    };
+
+                    // Check if data has changed
+                    const dataHash = JSON.stringify(displayData);
+                    if (dataHash === this.lastDataHash) {
+                        console.log('🔄 Data fetched - no changes detected');
+                        return; // No update needed
+                    }
+                    this.lastDataHash = dataHash;
+
+                    console.log('✅ Data updated successfully');
+                    this.updateDisplay(displayData);
+                    
+                } catch (error) {
+                    console.error('❌ Error fetching data:', error);
+                    // Don't throw - just log the error and continue with last known data
+                }
+            }
+
+            updateDisplay(data) {
+                // Update game info
+                document.getElementById('game-name').textContent = data.gameName;
+                document.getElementById('game-version').textContent = data.gameVersion;
+
+                // Update team
+                this.updateTeam(data.team);
+
+                // Update graveyard
+                this.updateGraveyard(data.dead || []);
+
+                // Update stats
+                document.getElementById('team-count').textContent = data.stats.teamCount;
+                document.getElementById('box-count').textContent = data.stats.boxCount;
+                document.getElementById('dead-count').textContent = data.stats.deadCount;
+                document.getElementById('total-count').textContent = data.stats.totalCaught;
+            }
+
+            updateTeam(team) {
+                this.lastTeamData = team; // Store for re-rendering
+                const teamGrid = document.getElementById('team-grid');
+                teamGrid.innerHTML = '';
+
+                team.forEach(pokemon => {
+                    const card = document.createElement('div');
+                    const isShiny = pokemon.status === 6;
+                    card.className = `pokemon-card ${isShiny ? 'shiny' : ''}`;
+
+                    // Build type badges if enabled
+                    const typeBadges = this.config.showPokemonTypes && pokemon.types ? 
+                        pokemon.types.map(type => `<span class="type-badge type-${type}">${type}</span>`).join('') : '';
+
+                    // Get Pokemon sprite URL
+                    const spriteUrl = this.getPokemonSpriteUrl(pokemon.pokemon, isShiny);
+
+                    // Build Pokemon info based on config
+                    let pokemonInfo = `<div class="pokemon-name">${pokemon.nickname || pokemon.name}</div>`;
+                    
+                    if (this.config.showPokemonNature && pokemon.nature) {
+                        pokemonInfo += `<div class="pokemon-nature">${pokemon.nature}</div>`;
+                    }
+                    
+                    if (this.config.showPokemonAbility && pokemon.ability) {
+                        pokemonInfo += `<div class="pokemon-ability">${pokemon.ability}</div>`;
+                    }
+                    
+                    if (this.config.showPokemonLocation && pokemon.locationId) {
+                        pokemonInfo += `<div class="pokemon-location">${pokemon.locationId.replace(/_/g, ' ')}</div>`;
+                    }
+                    
+                    if (this.config.showPokemonTypes && typeBadges) {
+                        pokemonInfo += `<div class="pokemon-types">${typeBadges}</div>`;
+                    }
+
+                    card.innerHTML = `
+                        <img src="${spriteUrl}" alt="${pokemon.name}" class="pokemon-sprite ${isShiny ? 'shiny' : ''}" 
+                             onerror="this.style.display='none'" onload="this.style.display='block'">
+                        <div class="pokemon-info">
+                            ${pokemonInfo}
+                        </div>
+                    `;
+
+                    teamGrid.appendChild(card);
+                });
+
+                // Fill empty slots
+                while (teamGrid.children.length < 6) {
+                    const emptyCard = document.createElement('div');
+                    emptyCard.className = 'pokemon-card';
+                    emptyCard.innerHTML = `
+                        <div class="pokemon-info">
+                            <div class="pokemon-name">---</div>
+                        </div>
+                    `;
+                    teamGrid.appendChild(emptyCard);
+                }
+            }
+
+            getPokemonSpriteUrl(pokemonName, isShiny = false) {
+                // Convert Pokemon name to proper format for sprite URLs
+                const cleanName = pokemonName.toLowerCase()
+                    .replace(/[^a-z0-9]/g, '-')  // Replace special chars with dashes
+                    .replace(/-+/g, '-')         // Remove multiple dashes
+                    .replace(/^-|-$/g, '');      // Remove leading/trailing dashes
+                
+                // Use Pokemon Showdown sprites - they're high quality and reliable
+                if (isShiny) {
+                    return `https://play.pokemonshowdown.com/sprites/gen5ani-shiny/${cleanName}.gif`;
+                } else {
+                    return `https://play.pokemonshowdown.com/sprites/gen5ani/${cleanName}.gif`;
+                }
+            }
+
+            getPokemonId(pokemonName) {
+                // Basic Pokemon name to Pokedex ID mapping
+                // This is a simplified version - in a real app you'd have a complete mapping
+                const pokemonMap = {
+                    'bulbasaur': 1, 'ivysaur': 2, 'venusaur': 3,
+                    'charmander': 4, 'charmeleon': 5, 'charizard': 6,
+                    'squirtle': 7, 'wartortle': 8, 'blastoise': 9,
+                    'caterpie': 10, 'metapod': 11, 'butterfree': 12,
+                    'weedle': 13, 'kakuna': 14, 'beedrill': 15,
+                    'pidgey': 16, 'pidgeotto': 17, 'pidgeot': 18,
+                    'rattata': 19, 'raticate': 20,
+                    'spearow': 21, 'fearow': 22,
+                    'ekans': 23, 'arbok': 24,
+                    'pikachu': 25, 'raichu': 26,
+                    'sandshrew': 27, 'sandslash': 28,
+                    'nidoran-f': 29, 'nidorina': 30, 'nidoqueen': 31,
+                    'nidoran-m': 32, 'nidorino': 33, 'nidoking': 34,
+                    'clefairy': 35, 'clefable': 36,
+                    'vulpix': 37, 'ninetales': 38,
+                    'jigglypuff': 39, 'wigglytuff': 40,
+                    'zubat': 41, 'golbat': 42,
+                    'oddish': 43, 'gloom': 44, 'vileplume': 45,
+                    'paras': 46, 'parasect': 47,
+                    'venonat': 48, 'venomoth': 49,
+                    'diglett': 50, 'dugtrio': 51,
+                    'meowth': 52, 'persian': 53,
+                    'psyduck': 54, 'golduck': 55,
+                    'mankey': 56, 'primeape': 57,
+                    'growlithe': 58, 'arcanine': 59,
+                    'poliwag': 60, 'poliwhirl': 61, 'poliwrath': 62,
+                    'abra': 63, 'kadabra': 64, 'alakazam': 65,
+                    'machop': 66, 'machoke': 67, 'machamp': 68,
+                    'bellsprout': 69, 'weepinbell': 70, 'victreebel': 71,
+                    'tentacool': 72, 'tentacruel': 73,
+                    'geodude': 74, 'graveler': 75, 'golem': 76,
+                    'ponyta': 77, 'rapidash': 78,
+                    'slowpoke': 79, 'slowbro': 80,
+                    'magnemite': 81, 'magneton': 82,
+                    'farfetchd': 83, 'doduo': 84, 'dodrio': 85,
+                    'seel': 86, 'dewgong': 87,
+                    'grimer': 88, 'muk': 89,
+                    'shellder': 90, 'cloyster': 91,
+                    'gastly': 92, 'haunter': 93, 'gengar': 94,
+                    'onix': 95, 'drowzee': 96, 'hypno': 97,
+                    'krabby': 98, 'kingler': 99,
+                    'voltorb': 100, 'electrode': 101,
+                    'exeggcute': 102, 'exeggutor': 103,
+                    'cubone': 104, 'marowak': 105,
+                    'hitmonlee': 106, 'hitmonchan': 107,
+                    'lickitung': 108, 'koffing': 109, 'weezing': 110,
+                    'rhyhorn': 111, 'rhydon': 112,
+                    'chansey': 113, 'tangela': 114,
+                    'kangaskhan': 115, 'horsea': 116, 'seadra': 117,
+                    'goldeen': 118, 'seaking': 119,
+                    'staryu': 120, 'starmie': 121,
+                    'mr-mime': 122, 'scyther': 123,
+                    'jynx': 124, 'electabuzz': 125, 'magmar': 126,
+                    'pinsir': 127, 'tauros': 128,
+                    'magikarp': 129, 'gyarados': 130,
+                    'lapras': 131, 'ditto': 132,
+                    'eevee': 133, 'vaporeon': 134, 'jolteon': 135, 'flareon': 136,
+                    'porygon': 137, 'omanyte': 138, 'omastar': 139,
+                    'kabuto': 140, 'kabutops': 141,
+                    'aerodactyl': 142, 'snorlax': 143,
+                    'articuno': 144, 'zapdos': 145, 'moltres': 146,
+                    'dratini': 147, 'dragonair': 148, 'dragonite': 149,
+                    'mewtwo': 150, 'mew': 151,
+                    // Gen 2
+                    'chikorita': 152, 'bayleef': 153, 'meganium': 154,
+                    'cyndaquil': 155, 'quilava': 156, 'typhlosion': 157,
+                    'totodile': 158, 'croconaw': 159, 'feraligatr': 160,
+                    // Gen 3 (some popular ones)
+                    'treecko': 252, 'grovyle': 253, 'sceptile': 254,
+                    'torchic': 255, 'combusken': 256, 'blaziken': 257,
+                    'mudkip': 258, 'marshtomp': 259, 'swampert': 260,
+                    'poochyena': 261, 'mightyena': 262,
+                    'zigzagoon': 263, 'linoone': 264,
+                    'wurmple': 265, 'silcoon': 266, 'beautifly': 267,
+                    'cascoon': 268, 'dustox': 269,
+                    'lotad': 270, 'lombre': 271, 'ludicolo': 272,
+                    'seedot': 273, 'nuzleaf': 274, 'shiftry': 275,
+                    'taillow': 276, 'swellow': 277,
+                    'wingull': 278, 'pelipper': 279,
+                    'ralts': 280, 'kirlia': 281, 'gardevoir': 282,
+                    'surskit': 283, 'masquerain': 284,
+                    'shroomish': 285, 'breloom': 286,
+                    'slakoth': 287, 'vigoroth': 288, 'slaking': 289,
+                    'nincada': 290, 'ninjask': 291, 'shedinja': 292,
+                    'whismur': 293, 'loudred': 294, 'exploud': 295,
+                    'makuhita': 296, 'hariyama': 297,
+                    'azurill': 298, 'nosepass': 299,
+                    'skitty': 300, 'delcatty': 301,
+                    'sableye': 302, 'mawile': 303,
+                    'aron': 304, 'lairon': 305, 'aggron': 306,
+                    'meditite': 307, 'medicham': 308,
+                    'electrike': 309, 'manectric': 310,
+                    'plusle': 311, 'minun': 312,
+                    'volbeat': 313, 'illumise': 314,
+                    'roselia': 315, 'gulpin': 316, 'swalot': 317,
+                    'carvanha': 318, 'sharpedo': 319,
+                    'wailmer': 320, 'wailord': 321,
+                    'numel': 322, 'camerupt': 323,
+                    'torkoal': 324, 'spoink': 325, 'grumpig': 326,
+                    'spinda': 327, 'trapinch': 328, 'vibrava': 329, 'flygon': 330,
+                    'cacnea': 331, 'cacturne': 332,
+                    'swablu': 333, 'altaria': 334,
+                    'zangoose': 335, 'seviper': 336,
+                    'lunatone': 337, 'solrock': 338,
+                    'barboach': 339, 'whiscash': 340,
+                    'corphish': 341, 'crawdaunt': 342,
+                    'baltoy': 343, 'claydol': 344,
+                    'lileep': 345, 'cradily': 346,
+                    'anorith': 347, 'armaldo': 348,
+                    'feebas': 349, 'milotic': 350,
+                    'castform': 351, 'kecleon': 352,
+                    'shuppet': 353, 'banette': 354,
+                    'duskull': 355, 'dusclops': 356,
+                    'tropius': 357, 'chimecho': 358,
+                    'absol': 359, 'wynaut': 360,
+                    'snorunt': 361, 'glalie': 362,
+                    'spheal': 363, 'sealeo': 364, 'walrein': 365,
+                    'clamperl': 366, 'huntail': 367, 'gorebyss': 368,
+                    'relicanth': 369, 'luvdisc': 370,
+                    'bagon': 371, 'shelgon': 372, 'salamence': 373,
+                    'beldum': 374, 'metang': 375, 'metagross': 376,
+                    'regirock': 377, 'regice': 378, 'registeel': 379,
+                    'latias': 380, 'latios': 381,
+                    'kyogre': 382, 'groudon': 383, 'rayquaza': 384,
+                    'jirachi': 385, 'deoxys': 386
+                };
+
+                const id = pokemonMap[pokemonName.toLowerCase()];
+                return id || 25; // Default to Pikachu if not found
+            }
+
+            startPolling() {
+                this.updateInterval = setInterval(() => {
+                    this.fetchAndUpdate().catch(error => {
+                        console.error('Update failed:', error);
+                        this.isConnected = false;
+                        this.showError();
+                    });
+                }, 2000); // Update every 2 seconds
+            }
+
+            stopPolling() {
+                if (this.updateInterval) {
+                    clearInterval(this.updateInterval);
+                    this.updateInterval = null;
+                }
+            }
+
+            showContent() {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            }
+
+            showError() {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                this.stopPolling();
+            }
+        }
+
+        // Real-world implementation for browser source
+        class RealNuzlockeOverlay extends NuzlockeOverlay {
+            async fetchAndUpdate() {
+                try {
+                    console.log('🔍 Fetching data...');
+                    
+                    // Method 1: Try to access parent window's NuzlockeAPI (if running in browser source from main tracker)
+                    if (window.parent && window.parent.NuzlockeAPI) {
+                        const data = await window.parent.NuzlockeAPI.getFull();
+                        if (data && !data.error) {
+                            const dataHash = JSON.stringify(data);
+                            if (dataHash !== this.lastDataHash) {
+                                this.lastDataHash = dataHash;
+                                this.updateDisplay(data);
+                                console.log('✅ Data updated successfully - new data received');
+                            } else {
+                                console.log('🔄 Data fetched - no changes detected');
+                            }
+                            return;
+                        }
+                    }
+
+                    // Method 2: Fetch from standalone server API (our current setup)
+                    const response = await fetch('/api/external?endpoint=full');
+                    const data = await response.json();
+                    
+                    if (data && !data.error) {
+                        const dataHash = JSON.stringify(data);
+                        if (dataHash !== this.lastDataHash) {
+                            this.lastDataHash = dataHash;
+                            this.updateDisplay(data);
+                            console.log('✅ Data updated successfully - new data received');
+                        } else {
+                            console.log('🔄 Data fetched - no changes detected');
+                        }
+                        return;
+                    }
+
+                    throw new Error('No data available from API');
+                } catch (error) {
+                    console.error('❌ Failed to fetch data:', error.message);
+                    throw error;
+                }
+            }
+        }
+
+        // Initialize overlay when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const overlay = new RealNuzlockeOverlay(); // Using real data from standalone server
+            overlay.initialize();
+        });
+
+        // Handle window focus/blur for OBS
+        window.addEventListener('focus', () => {
+            console.log('Overlay focused');
+        });
+
+        window.addEventListener('blur', () => {
+            console.log('Overlay blurred');
+        });
+    </script>
+</body>
+</html> 

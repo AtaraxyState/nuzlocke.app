@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuzlocke OBS Overlay Configuration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            opacity: 0.8;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007acc;
+        }
+
+        .section h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.3em;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border: 2px solid #e9ecef;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .checkbox-item:hover {
+            border-color: #007acc;
+            background: #f0f8ff;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .url-section {
+            background: #e8f5e8;
+            border-left-color: #28a745;
+        }
+
+        .url-display {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #007acc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #005a99;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .preview-section {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+
+        .preview-frame {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            background: #000;
+        }
+
+        .instructions {
+            background: #d1ecf1;
+            border-left-color: #17a2b8;
+            margin-top: 30px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Nuzlocke OBS Overlay</h1>
+            <p>Configure your streaming overlay with custom settings</p>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <h3>📺 Visible Elements</h3>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="gameInfo">
+                        <label for="gameInfo">Game Title & Version</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="teamDisplay" checked>
+                        <label for="teamDisplay">Team Display</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="statsDisplay" checked>
+                        <label for="statsDisplay">Statistics Panel</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="graveyardDisplay" checked>
+                        <label for="graveyardDisplay">Graveyard Display</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>👥 Team Display Options</h3>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="teamHeader" checked>
+                        <label for="teamHeader">Show "Current Team" Header</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" id="teamLayoutGrid" name="teamLayout" checked>
+                        <label for="teamLayoutGrid">Grid Layout (2x3)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" id="teamLayoutHorizontal" name="teamLayout">
+                        <label for="teamLayoutHorizontal">Horizontal Line</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" id="teamLayoutVertical" name="teamLayout">
+                        <label for="teamLayoutVertical">Vertical Line</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="nature" checked>
+                        <label for="nature">Show Pokemon Nature</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="ability" checked>
+                        <label for="ability">Show Pokemon Ability</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="location" checked>
+                        <label for="location">Show Catch Location</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="types" checked>
+                        <label for="types">Show Pokemon Types</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📊 Statistics Panel Options</h3>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="compactStats">
+                        <label for="compactStats">Compact Statistics (smaller UI)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section url-section">
+                <h3>🔗 Generated URL</h3>
+                <p>Copy this URL and use it as a Browser Source in OBS:</p>
+                <div class="url-display" id="generatedUrl">
+                    http://localhost:5174/examples/obs-overlay.html
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="copyUrl()">📋 Copy URL</button>
+                    <button class="btn btn-success" onclick="openPreview()">👁️ Preview Overlay</button>
+                    <button class="btn btn-secondary" onclick="resetSettings()">🔄 Reset to Defaults</button>
+                </div>
+            </div>
+
+            <div class="section preview-section">
+                <h3>👀 Live Preview</h3>
+                <p>Preview how your overlay will look:</p>
+                <iframe id="previewFrame" class="preview-frame" src="about:blank"></iframe>
+                <div class="button-group" style="margin-top: 15px;">
+                    <button class="btn btn-warning" onclick="refreshPreview()">🔄 Refresh Preview</button>
+                </div>
+            </div>
+
+            <div class="section instructions">
+                <h3>📋 Setup Instructions</h3>
+                <ol>
+                    <li><strong>Configure your overlay</strong> using the checkboxes above</li>
+                    <li><strong>Copy the generated URL</strong> by clicking the "Copy URL" button</li>
+                    <li><strong>Open OBS Studio</strong> and add a new Browser Source</li>
+                    <li><strong>Paste the URL</strong> into the Browser Source settings</li>
+                    <li><strong>Set dimensions:</strong> Width: 1920, Height: 1080 (or your stream resolution)</li>
+                    <li><strong>Make sure</strong> your Nuzlocke tracker is running on <code>http://localhost:5173</code></li>
+                    <li><strong>Start the standalone server</strong> on <code>http://localhost:5174</code></li>
+                    <li><strong>Your overlay</strong> will automatically sync with your tracker data!</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration state
+        const config = {
+            gameInfo: false,
+            teamDisplay: true,
+            statsDisplay: true,
+            graveyardDisplay: true,
+            teamHeader: true,
+            teamLayout: 'grid', // 'grid', 'horizontal', 'vertical'
+            compactStats: false,
+            nature: true,
+            ability: true,
+            location: true,
+            types: true
+        };
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCheckboxes();
+            setupEventListeners();
+            updateUrl();
+            refreshPreview();
+            
+            // Set up message listener for iframe communication
+            window.addEventListener('message', function(event) {
+                if (event.data.type === 'overlayReady') {
+                    // Overlay is ready, send initial config
+                    updatePreviewConfig();
+                }
+            });
+        });
+
+        function setupEventListeners() {
+            const checkboxes = ['gameInfo', 'teamDisplay', 'statsDisplay', 'graveyardDisplay', 'teamHeader', 'compactStats', 'nature', 'ability', 'location', 'types'];
+            
+            checkboxes.forEach(id => {
+                document.getElementById(id).addEventListener('change', function() {
+                    config[id] = this.checked;
+                    updateUrl();
+                    updatePreviewConfig();
+                });
+            });
+
+            // Handle team layout radio buttons
+            const teamLayoutRadios = ['teamLayoutGrid', 'teamLayoutHorizontal', 'teamLayoutVertical'];
+            teamLayoutRadios.forEach(id => {
+                document.getElementById(id).addEventListener('change', function() {
+                    if (this.checked) {
+                        if (id === 'teamLayoutGrid') config.teamLayout = 'grid';
+                        else if (id === 'teamLayoutHorizontal') config.teamLayout = 'horizontal';
+                        else if (id === 'teamLayoutVertical') config.teamLayout = 'vertical';
+                        updateUrl();
+                        updatePreviewConfig();
+                    }
+                });
+            });
+        }
+
+        function updateCheckboxes() {
+            Object.keys(config).forEach(key => {
+                if (key === 'teamLayout') {
+                    // Handle team layout radio buttons
+                    document.getElementById('teamLayoutGrid').checked = config.teamLayout === 'grid';
+                    document.getElementById('teamLayoutHorizontal').checked = config.teamLayout === 'horizontal';
+                    document.getElementById('teamLayoutVertical').checked = config.teamLayout === 'vertical';
+                } else {
+                    const checkbox = document.getElementById(key);
+                    if (checkbox) {
+                        checkbox.checked = config[key];
+                    }
+                }
+            });
+        }
+
+        function updateUrl() {
+            const baseUrl = 'http://localhost:5174/examples/obs-overlay.html';
+            const params = new URLSearchParams();
+
+            if (config.gameInfo) params.set('gameInfo', 'true');
+            if (!config.teamDisplay) params.set('teamDisplay', 'false');
+            if (!config.statsDisplay) params.set('statsDisplay', 'false');
+            if (!config.graveyardDisplay) params.set('graveyardDisplay', 'false');
+            if (!config.teamHeader) params.set('teamHeader', 'false');
+            if (config.teamLayout !== 'grid') params.set('teamLayout', config.teamLayout);
+            if (config.compactStats) params.set('compactStats', 'true');
+            if (!config.nature) params.set('nature', 'false');
+            if (!config.ability) params.set('ability', 'false');
+            if (!config.location) params.set('location', 'false');
+            if (!config.types) params.set('types', 'false');
+
+            const finalUrl = baseUrl + (params.toString() ? '?' + params.toString() : '');
+            document.getElementById('generatedUrl').textContent = finalUrl;
+        }
+
+        function copyUrl() {
+            const url = document.getElementById('generatedUrl').textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('✅ URL copied to clipboard!\n\nYou can now paste this into OBS as a Browser Source.');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('✅ URL copied to clipboard!\n\nYou can now paste this into OBS as a Browser Source.');
+            });
+        }
+
+        function openPreview() {
+            const url = document.getElementById('generatedUrl').textContent;
+            window.open(url, '_blank');
+        }
+
+        function resetSettings() {
+            config.gameInfo = false;
+            config.teamDisplay = true;
+            config.statsDisplay = true;
+            config.graveyardDisplay = true;
+            config.teamHeader = true;
+            config.teamLayout = 'grid';
+            config.compactStats = false;
+            config.nature = true;
+            config.ability = true;
+            config.location = true;
+            config.types = true;
+
+            updateCheckboxes();
+            updateUrl();
+            updatePreviewConfig();
+        }
+
+        // Real-time preview update without URL refresh
+        function updatePreviewConfig() {
+            const iframe = document.getElementById('previewFrame');
+            if (iframe && iframe.contentWindow) {
+                try {
+                    // Send configuration to the overlay iframe
+                    iframe.contentWindow.postMessage({
+                        type: 'updateConfig',
+                        config: config
+                    }, '*');
+                } catch (error) {
+                    console.log('Preview update failed, refreshing iframe');
+                    refreshPreview();
+                }
+            } else {
+                refreshPreview();
+            }
+        }
+
+        function refreshPreview() {
+            const url = document.getElementById('generatedUrl').textContent;
+            document.getElementById('previewFrame').src = url;
+        }
+    </script>
+</body>
+</html> 
