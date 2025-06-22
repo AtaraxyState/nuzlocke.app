@@ -1,6 +1,6 @@
 # Nuzlocke Tracker with Real-Time Streaming Support
 
-A comprehensive Nuzlocke tracker application with advanced features for Pokemon challenge runs, including real-time data streaming for OBS overlays and streaming setups.
+A comprehensive Nuzlocke tracker application with advanced features for Pokemon challenge runs, including real-time data streaming for OBS overlays and streaming setups. The tracker part is from https://github.com/domtronn/nuzlocke.app
 
 ## Features
 
