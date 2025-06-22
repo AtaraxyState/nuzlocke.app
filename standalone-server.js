@@ -419,19 +419,93 @@ const server = http.createServer((req, res) => {
   }
   
   // Static file serving
-  let filePath = path.join(__dirname, url.pathname === '/' ? 'real-data-demo.html' : url.pathname)
+  let filePath
+  
+  // Handle root path with a simple status page
+  if (url.pathname === '/') {
+    const statusPage = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuzlocke API Server</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .header { text-align: center; color: #333; }
+        .status { background: #f0f8ff; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .links { background: #f9f9f9; padding: 20px; border-radius: 8px; }
+        .links a { display: block; margin: 10px 0; color: #0066cc; text-decoration: none; }
+        .links a:hover { text-decoration: underline; }
+        .api-status { color: ${realTimeData.gameData ? '#008000' : '#ff6600'}; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔥 Nuzlocke API Server</h1>
+        <p>Real-time data server for streaming and external access</p>
+    </div>
+    
+    <div class="status">
+        <h2>Server Status</h2>
+        <p><strong>Port:</strong> ${PORT}</p>
+        <p><strong>Data Status:</strong> <span class="api-status">${realTimeData.gameData ? '✅ Real data connected' : '⚠️ Using mock data'}</span></p>
+        <p><strong>Last Update:</strong> ${realTimeData.lastUpdate || 'Never'}</p>
+    </div>
+    
+    <div class="links">
+        <h2>Available Services</h2>
+        <a href="/api/external?endpoint=status">📊 API Status</a>
+        <a href="/api/external?endpoint=full">📋 Full Game Data</a>
+        <a href="/examples/obs-overlay.html">🎥 OBS Overlay</a>
+        <a href="/examples/obs-config.html">⚙️ Configuration Tool</a>
+    </div>
+    
+    <div class="links">
+        <h2>API Endpoints</h2>
+        <a href="/api/external?endpoint=team">Team Data</a>
+        <a href="/api/external?endpoint=box">Box Data</a>
+        <a href="/api/external?endpoint=dead">Graveyard Data</a>
+        <a href="/api/external?endpoint=bosses">Boss Data</a>
+    </div>
+</body>
+</html>`
+    
+    res.setHeader('Content-Type', 'text/html')
+    res.writeHead(200)
+    res.end(statusPage)
+    return
+  }
   
   // Handle special routes
   if (url.pathname === '/examples/obs-overlay.html') {
     filePath = path.join(__dirname, 'static/examples/obs-overlay.html')
   } else if (url.pathname === '/examples/obs-config.html') {
     filePath = path.join(__dirname, 'static/examples/obs-config.html')
+  } else {
+    // Try to serve static files from various locations
+    const possiblePaths = [
+      path.join(__dirname, url.pathname),
+      path.join(__dirname, 'static', url.pathname),
+      path.join(__dirname, url.pathname.replace(/^\//, ''))
+    ]
+    
+    filePath = possiblePaths.find(p => fs.existsSync(p))
   }
   
   // Check if file exists
-  if (!fs.existsSync(filePath)) {
-    res.writeHead(404)
-    res.end('File not found')
+  if (!filePath || !fs.existsSync(filePath)) {
+    res.writeHead(404, { 'Content-Type': 'text/html' })
+    res.end(`
+<!DOCTYPE html>
+<html>
+<head><title>404 - Not Found</title></head>
+<body>
+    <h1>404 - File Not Found</h1>
+    <p>The requested file <code>${url.pathname}</code> was not found.</p>
+    <p><a href="/">← Back to API Server Home</a></p>
+</body>
+</html>`)
     return
   }
   
