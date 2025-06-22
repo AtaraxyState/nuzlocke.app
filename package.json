@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test:randomiser": "for i in `cat src/lib/data/games.json | jq 'keys[]' -r`; do curl -s http://localhost:5173/api/route/generate/$i.json; done",
     "test:pokemon": "for i in `cat src/lib/data/games.json | jq 'keys[]' -r`; do curl -s http://localhost:5173/api/pokemon/$i.json; done",
-    "test:league": "deno run --allow-read ./api/static/league/validate.ts"
+    "test:league": "deno run --allow-read ./api/static/league/validate.ts",
+    "test:external-api": "node scripts/test-external-api.js"
   },
   "devDependencies": {
     "@iconify-icons/mdi": "^1.2.34",
@@ -51,7 +52,7 @@
     "fast-deep-equal": "^3.1.3",
     "match-sorter": "^6.3.1",
     "pokedex-promise-v2": "^3.3.2",
-    "pokemon-assets": "^0.6.0",
+    "pokesprite-images": "^2.7.0",
     "prettier": "^2.8.7",
     "prettier-plugin-svelte": "^2.10.0",
     "ramda": "^0.27.1",
