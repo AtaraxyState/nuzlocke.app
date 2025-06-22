@@ -4,6 +4,7 @@
   import { page } from '$app/stores'
   import { afterUpdate } from 'svelte'
   import { CookieBanner, Footer } from '$c/navs'
+  import AutoSyncIndicator from '$c/navs/AutoSyncIndicator.svelte'
 
   import createErrorModal from '$utils/error-handler'
   import deferStyles from '$lib/utils/defer-styles'
@@ -12,6 +13,19 @@
     deferStyles('/assets/pokemon.css')
     deferStyles('/assets/badges.css')
     window.onunhandledrejection = createErrorModal
+    
+    // Load external API bridge for streaming/OBS integration
+    if (typeof window !== 'undefined') {
+      await import('$lib/api/external-bridge.js')
+      
+      // Auto-start standalone server sync after a short delay
+      setTimeout(() => {
+        if (window.NuzlockeAPI && window.NuzlockeAPI.getCurrentGameData()) {
+          console.log('🔄 Auto-starting standalone server sync...')
+          window.NuzlockeAPI.startStandaloneSync()
+        }
+      }, 3000) // Wait 3 seconds for the app to fully load
+    }
   })
 
   const title = 'Nuzlocke Tracker'
@@ -36,6 +50,7 @@
 
 <slot />
 
+<AutoSyncIndicator />
 <CookieBanner />
 <Footer />
 
