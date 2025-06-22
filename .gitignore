@@ -14,3 +14,7 @@ static/logos
 static/sprites
 static/graves
 static/audio
+
+# Deployment folders
+NuzlockeTracker-Portable/
+Test-Deploy/
