@@ -35,7 +35,6 @@ Write-Host "Copying application files..." -ForegroundColor Green
 # Copy essential application files
 $AppFiles = @(
     "package.json",
-    "package-lock.json",
     "yarn.lock",
     "svelte.config.js",
     "vite.config.js",
@@ -76,6 +75,12 @@ echo.
 echo The tracker will be available at: http://localhost:5173
 echo.
 cd /d "%~dp0app"
+if not exist "package.json" (
+    echo Error: package.json not found!
+    echo Make sure you are running this from the correct directory.
+    pause
+    exit /b 1
+)
 npm run dev
 pause
 '@
@@ -94,6 +99,12 @@ echo OBS Overlay: http://localhost:5174/examples/obs-overlay.html
 echo Config Tool: http://localhost:5174/examples/obs-config.html
 echo.
 cd /d "%~dp0app"
+if not exist "standalone-server.js" (
+    echo Error: standalone-server.js not found!
+    echo Make sure you are running this from the correct directory.
+    pause
+    exit /b 1
+)
 node standalone-server.js
 pause
 '@

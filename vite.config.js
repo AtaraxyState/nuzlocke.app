@@ -19,6 +19,12 @@ const config = {
     }
   },
 
+  server: {
+    fs: {
+      allow: ['..']
+    }
+  },
+
   build: {
     sourcemap: true,
     target: ['es2020']
