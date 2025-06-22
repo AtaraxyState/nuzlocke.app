@@ -1,103 +1,195 @@
-# Nuzlock tracker
+# Nuzlocke Tracker with Real-Time Streaming Support
 
-<a href="https://www.buymeacoffee.com/nuzlocketracker" target="_blank">
-<img
-    src="https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png" 
-    alt="Buy Me A Coffee" 
-    style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" 
-/>
-</a>
+A comprehensive Nuzlocke tracker application with advanced features for Pokemon challenge runs, including real-time data streaming for OBS overlays and streaming setups.
 
-This project is designed for tracking Nuzlocke runs, the Pokemon
-you've encountered and their status. But it also provides information
-and adivce for Bosses you face. 
+## Features
+
+### Core Tracking
+- **Pokemon Management**: Track caught, dead, and boxed Pokemon with detailed information
+- **Team Builder**: Manage your active team with drag-and-drop functionality
+- **Death Tracking**: Record death causes with trainer, location, and opponent details
+- **Boss Battle Analysis**: Get strategic advice for gym leaders and important battles
+- **Multiple Game Support**: Supports various Pokemon games and ROM hacks
+
+### Streaming & OBS Integration
+- **Real-Time Data API**: Live data access for streaming overlays
+- **Customizable OBS Overlay**: Fully configurable overlay with multiple layout options
+- **Auto-Sync**: Automatic data synchronization between tracker and streaming setup
+- **Graveyard Memorial**: Scrolling display of fallen Pokemon with death causes
+- **Configuration Interface**: Easy setup tool for customizing overlay appearance
+
+## Quick Start
+
+### Prerequisites
+- Node.js (v16 or higher)
+- npm or yarn package manager
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd NuzlockeApp/nuzlocke.app
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Start the main tracker**
+   ```bash
+   npm run dev
+   ```
+   The tracker will be available at `http://localhost:5173`
+
+### For Streaming Setup
+
+1. **Start the standalone API server** (in a separate terminal)
+   ```bash
+   node standalone-server.js
+   ```
+   The API server will run on `http://localhost:5174`
+
+2. **Access streaming tools**
+   - **OBS Overlay**: `http://localhost:5174/examples/obs-overlay.html`
+   - **Configuration Tool**: `http://localhost:5174/examples/obs-config.html`
+   - **API Endpoints**: `http://localhost:5174/api/external?endpoint=full`
+
+## Streaming Features
+
+### OBS Overlay Customization
+The overlay supports extensive customization through URL parameters:
+
+- **Layout Options**: Grid (2x3), Horizontal Line, Vertical Line
+- **Display Toggles**: Team, stats, graveyard, game info
+- **Pokemon Details**: Nature, ability, catch location, types
+- **Real-Time Updates**: Automatic data refresh every 2 seconds
+
+### Configuration Tool
+Use the web-based configuration interface to:
+- Toggle display elements on/off
+- Choose team layout styles
+- Preview changes in real-time
+- Generate custom URLs for OBS browser sources
+
+### Auto-Sync System
+- Automatically detects changes in your tracker
+- Syncs data to the API server without manual intervention
+- Visual indicator shows connection status
+- Smart logging (only reports actual changes)
+
+## API Endpoints
+
+The standalone server provides several API endpoints:
+
+- `/api/external?endpoint=full` - Complete game data
+- `/api/external?endpoint=team` - Current team only
+- `/api/external?endpoint=dead` - Graveyard data
+- `/api/external?endpoint=stats` - Game statistics
+- `/api/external?endpoint=box` - Boxed Pokemon
+
+## Development
+
+### Project Structure
+```
+nuzlocke.app/
+├── src/
+│   ├── lib/
+│   │   ├── components/     # Svelte components
+│   │   ├── data/          # Game data and configurations
+│   │   ├── utils/         # Utility functions
+│   │   └── api/           # API integration
+│   └── routes/            # SvelteKit routes
+├── static/
+│   ├── examples/          # OBS overlay examples
+│   └── api/              # Static API data
+├── standalone-server.js   # External API server
+└── package.json
+```
+
+### Key Technologies
+- **SvelteKit**: Main application framework
+- **Tailwind CSS**: Styling and responsive design
+- **Node.js**: Standalone API server
+- **LocalStorage**: Data persistence
+- **Real-time APIs**: Live data streaming
 
 ### Contributing
 
-Currently, I'm working through entering the data for all existing
-games but this can easily be made to support mods or other game
-formats.
+Contributions are welcome! Areas for improvement:
 
-If you want to contribute you will need to provide 2 files, the
-`routes.txt` and `league.txt` which should be in the following format
-below named after the generation, e.g. `oras.txt`
+1. **Game Data**: Add support for new games and ROM hacks
+2. **Overlay Themes**: Create new visual themes for streaming
+3. **API Features**: Extend the external API with new endpoints
+4. **Mobile Support**: Improve mobile responsiveness
+5. **Performance**: Optimize data handling and rendering
 
-**League data**
-```
---1|Gym Leader Name|Gym Leader Speciality|/image/path
-pokemon|level|move1,move2,move3,move4|ability|held-item
-pokemon|level|move1,move2,move3,move4|ability|held-item
-pokemon|level|move1,move2,move3,move4|ability|held-item
-```
+### Adding New Games
 
-**Route data**
-```
-Route 1
-Route 2
---Gym battle|1|gym-leader
-Route 3
-```
+To add support for a new game:
 
-**Patches**
-Patches are needed by
-[RomHacks](https://en.wikipedia.org/wiki/ROM_Hacking) as they often
-make changes to abilities, moves, items, and stats.
+1. Add game data to `src/lib/data/games.json`
+2. Create route data in `src/lib/data/routes.json`
+3. Add trainer/boss data to `src/lib/data/trainers.json`
+4. Include any patches in `src/lib/data/patches.json`
 
-To support a **RomHack** you will need to provide a patches file containing the following
+## Troubleshooting
 
-```
---item
-item name|item sprite|item description
+### Common Issues
 
---move
-name|type*|power*|description 
+**OBS Overlay not updating**
+- Ensure both servers are running (ports 5173 and 5174)
+- Check browser console for API connection errors
+- Verify auto-sync is enabled in the main tracker
 
---ability
-name|description
+**Data not syncing**
+- Refresh the main tracker page to restart auto-sync
+- Check that localStorage contains game data
+- Verify the standalone server is accessible
 
---pokemon
-hp,atk,def,spa,spd,spe*|name|type1,type2*
-```
+**Pokemon sprites not loading**
+- Sprites are loaded from Pokemon Showdown's servers
+- Check internet connection for external sprite access
+- Fallback sprites will be used if primary sources fail
 
-`*` denotes optional fields, you can leave these blank but you must
-include the necessary number of `|`s, e.g. `cut||90` will just modify
-the power of `cut`
+## Usage Examples
 
-Pokemon stats are a **comma** `,` separated list, but you should only
-include the modifications, e.g. `,,100` will modify the defense to
-`100`
+### Basic Nuzlocke Tracking
+1. Start a new run by selecting your game
+2. Add Pokemon as you encounter them
+3. Track their status (caught, dead, boxed)
+4. Use the team builder for battle planning
 
-You can find extensive examples of these in the [Nuzlocke.data](https://github.com/domtronn/nuzlocke.data) project.
+### Streaming Setup
+1. Start both the main tracker and standalone server
+2. Add the OBS overlay as a browser source
+3. Use the configuration tool to customize appearance
+4. Auto-sync will keep your overlay updated in real-time
 
+### Death Tracking
+When a Pokemon dies:
+- Use the death modal to record details
+- Specify the trainer, location, and cause
+- The graveyard will show "Killed by [trainer]" or "Caught at [location]" appropriately
 
-### Alternatives
+## License
 
-There are a lot of alternatives out there, and whilst they don't meet
-the needs I personally was looking for, you should absolutely check
-them out and thank their creators.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-- [Nuzlock tracker](https://nuzlocke.netlify.app/) - An all in one nuzlocke manager (most similar) 
-- [Nuzlocke tracker](https://ashenfactory.github.io/nuzlocke-tracker/) - A simple in order route tracker
-- [Nuzlog](https://techyfatih.github.io/Nuzlog/) - A journal, team and item manager
-- [Nuzlocke Generator](https://nuzlocke-generator.herokuapp.com/) - Image creator for runs 
+## Acknowledgments
 
-### Useful links
+- Pokemon Showdown for sprite resources
+- SvelteKit team for the excellent framework
+- The Nuzlocke community for inspiration and feedback
 
-- [Sentry](https://sentry.io/organizations/nuzlocke-tracker/issues/?project=6109144) - Sentry error tracking
-- [Analytics](https://nuzlocke-analytics.vercel.app/) - Page views and click trackingc
-- [Updates & Support](https://www.buymeacoffee.com/dashboard) - Follow feature updates and support me
-- [PixelIt](https://giventofly.github.io/pixelit/#tryit) - A Pixelator for making custom assets
-- [Usprited](https://github.com/linuxenko/usprited) - A sprite sheet editor & CSS generator
+## Support
 
-<!-- https://www.fiverr.com/kohari_nk/make-pixel-16x16-icon?context_referrer=search_gigs&source=top-bar&ref_ctx_id=cf16eab512166c55524582f57bd11493&pckg_id=1&pos=4&context_type=auto&funnel=cf16eab512166c55524582f57bd11493&imp_id=0d9b6187-ef6d-4936-b92e-b8ca99a75986 -->
+For issues, feature requests, or questions:
+1. Check the troubleshooting section above
+2. Review existing issues in the repository
+3. Create a new issue with detailed information about your problem
 
+---
 
-<!--
-Script for testing on webpagetest
-
-window.localStorage.setItem('nuzlocke', '1')
-window.localStorage.setItem('nuzlocke.1','{"__team":["Cerulean City","Route 20","Route 3","Mt. Ember"],"Starter":{"id":0,"pokemon":"cyndaquil","location":"Starter"},"Pallet Town":{"id":1,"pokemon":"clamperl","location":"Pallet Town"},"Route 1":{"id":3,"pokemon":"zigzagoon-galar","location":"Route 1"},"Viridian City":{"id":5,"pokemon":"spearow","location":"Viridian City"},"Route 22":{"id":6,"pokemon":"paras","location":"Route 22"},"Route 2":{"id":7,"pokemon":"zigzagoon","location":"Route 2"},"Viridian Forest":{"id":8,"pokemon":"surskit","location":"Viridian Forest"},"Pewter City":{"id":12,"pokemon":"espurr","location":"Pewter City"},"Route 3":{"id":13,"pokemon":"meowth-alola","location":"Route 3"},"Route 4":{"id":14,"pokemon":"magikarp","location":"Route 4"},"Mt. Moon":{"id":15,"pokemon":"zubat","location":"Mt. Moon"},"Route 24":{"id":17,"pokemon":"slakoth","location":"Route 24"},"Route 25":{"id":19,"pokemon":"mantyke","location":"Route 25"},"Cerulean City":{"id":21,"pokemon":"luvdisc","location":"Cerulean City"},"Route 5":{"id":23,"pokemon":"growlithe","location":"Route 5"},"Route 6":{"id":24,"pokemon":"qwilfish","location":"Route 6"},"Vermillion City":{"id":25,"pokemon":"farfetchd-galar","location":"Vermillion City"},"Digletts Cave":{"id":27,"pokemon":"diglett-alola","location":"Digletts Cave"},"S.S. Anne":{"id":28,"pokemon":"wimpod","location":"S.S. Anne"},"Route 11":{"id":30,"pokemon":"golett","location":"Route 11"},"Route 9":{"id":32,"pokemon":"shelmet","location":"Route 9"},"Rock Tunnel":{"id":33,"pokemon":"stunfisk-galar","location":"Rock Tunnel"},"Route 10":{"id":34,"pokemon":"tynamo","location":"Route 10"},"Pokémon Tower":{"id":36,"pokemon":"runerigus","location":"Pokémon Tower"},"Route 12":{"id":37,"pokemon":"dewgong","location":"Route 12"},"Route 8":{"id":38,"pokemon":"girafarig","location":"Route 8"},"Route 7":{"id":39,"pokemon":"inkay","location":"Route 7"},"Celadon City":{"id":40,"pokemon":"honedge","location":"Celadon City"},"Saffron City":{"id":43,"pokemon":"mudkip","location":"Saffron City"},"Route 16":{"id":49,"pokemon":"durant","location":"Route 16"},"Route 17":{"id":50,"pokemon":"muk-alola","location":"Route 17"},"Route 18":{"id":51,"pokemon":"altaria","location":"Route 18"},"Fuschia City":{"id":52,"pokemon":"poliwag","location":"Fuschia City"},"Safari Zone":{"id":55,"pokemon":"klefki","location":"Safari Zone"},"Route 15":{"id":56,"pokemon":"tsareena","location":"Route 15"},"Route 14":{"id":57,"pokemon":"charjabug","location":"Route 14"},"Route 13":{"id":58,"pokemon":"mantine","location":"Route 13"},"Power Plant":{"id":59,"pokemon":"manectric","location":"Power Plant"},"Route 19":{"id":60,"pokemon":"shellder","location":"Route 19"},"Route 20":{"id":61,"pokemon":"wailord","location":"Route 20"},"Seafoam Islands":{"id":62,"pokemon":"vanilluxe","location":"Seafoam Islands"},"Cinnabar Island":{"id":66,"pokemon":"dhelmise","location":"Cinnabar Island"},"Pokémon Mansion":{"id":71,"pokemon":"liepard","location":"Pokémon Mansion"},"Route 21":{"id":73,"pokemon":"qwilfish","location":"Route 21"},"Route 23":{"id":76,"pokemon":"fearow","location":"Route 23"},"Victory Road":{"id":77,"pokemon":"medicham","location":"Victory Road"},"Three Island":{"id":88,"pokemon":"smeargle","location":"Three Island"},"Mt. Ember":{"id":89,"pokemon":"coalossal","location":"Mt. Ember"},"Treasure Beach":{"id":90,"pokemon":"meltan","location":"Treasure Beach"},"Berry Forest":{"id":91,"pokemon":"durant","location":"Berry Forest"},"Bond Bridge":{"id":92,"pokemon":"hawlucha","location":"Bond Bridge"},"Cape Brink":{"id":93,"pokemon":"feebas","location":"Cape Brink"},"Kindle Road":{"id":94,"pokemon":"eelektross","location":"Kindle Road"},"Cerulean Cave":{"id":99,"pokemon":"machamp","location":"Cerulean Cave"}}')
-window.localStorage.setItem('nuzlocke.consent', 'true')
-window.localStorage.setItem('nuzlocke.saves', '1|1683021373039>1683185762250|Web Page Test Data|radred|01110100|1')
-window.localStorage.setItem('nuzlocke.theme', 'dark')
--->
+**Happy Nuzlocking!** 🔥⚔️ 
