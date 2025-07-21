@@ -8,7 +8,7 @@
     hp,
     col = '',
     nature = [],
-    compare,
+    compare = false,
     side = 'right',
     shorthand = true,
     showbars = true

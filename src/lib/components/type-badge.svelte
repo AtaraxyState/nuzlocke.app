@@ -1,6 +1,6 @@
 <script>
   export let type,
-    tera,
+    tera = false,
     className = ''
 
   if (tera) className = (className + ' tera').trim()
@@ -157,5 +157,4 @@
   :global(.greenscreen) div {
     box-shadow: none !important;
   }
-
 </style>

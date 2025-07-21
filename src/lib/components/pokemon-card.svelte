@@ -1,9 +1,9 @@
 <script>
   export let sprite,
-    fallback,
+    fallback = '',
     name,
     types,
-    tera,
+    tera = '',
     level = '',
     moves,
     maxStat,
