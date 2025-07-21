@@ -40,14 +40,25 @@ export const fetchLeague = async (game, starter = 'fire') => {
 
   const id = `${game}@${starter}`
   const uri = `${DATA}/league/${game}.${starter}.json`
-
   if (league[id]) return league[id]
-  if (!league[uri]) league[uri] = fetch(uri).then((res) => res.json())
+  if (!league[uri]) {
+    console.time(`league:${id}`)
+    league[uri] = fetch(uri)
+      .then((res) => res.json())
+      .then((data) => {
+        console.timeEnd(`league:${id}`)
+        return data
+      })
+  }
 
-  console.time(`league:${id}`)
   league[id] = await league[uri]
-  console.timeEnd(`league:${id}`)
   return league[id]
+  // if (!league[uri]) league[uri] = fetch(uri).then((res) => res.json())
+
+  // console.time(`league:${id}`)
+  // league[id] = await league[uri]
+  // console.timeEnd(`league:${id}`)
+  // return league[id]
 }
 
 const route = {}

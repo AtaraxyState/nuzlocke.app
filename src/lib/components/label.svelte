@@ -1,8 +1,12 @@
 <script>
-  export let heading, body, className
+  export let heading,
+    body,
+    className = ''
 </script>
 
-<div class='h-12 w-14 md:h-14 md:w-14 flex flex-col text-center justify-center text-gray-800 dark:text-gray-200 p-1 {className}'>
-  <span class='md:scale-100 text-tiny leading-3'>{heading}</span>
-  <span class='font-bold text-2xl'>{body}</span>
+<div
+  class="flex h-12 w-14 flex-col justify-center p-1 text-center text-gray-800 dark:text-gray-200 md:h-14 md:w-14 {className}"
+>
+  <span class="text-tiny leading-3 md:scale-100">{heading}</span>
+  <span class="text-2xl font-bold">{body}</span>
 </div>
